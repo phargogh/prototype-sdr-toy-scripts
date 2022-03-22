@@ -11,7 +11,10 @@ from osgeo import osr
 TFA = 4
 DEM = numpy.array([[5, 4, 3, 2, 1]], dtype=numpy.uint8)
 USLE = numpy.array([[3, 2, 1, 1.5, -1]], dtype=numpy.float32)
-SDR = numpy.array([[0.7, 0.5, 0.3, 0.1, -1]], dtype=numpy.float32)
+# SDR = numpy.array([[0.7, 0.5, 0.3, 1, -1]], dtype=numpy.float32)  # old one
+
+# here we're trying SDR that's monotonically increasing as we go downstream.
+SDR = numpy.array([[0.3, 0.5, 0.7, 1, -1]], dtype=numpy.float32)
 #EROSIVITY = numpy.array([[ ]], dtype=numpy.float32)
 #ERODIBILITY = numpy.array([[ ]], dtype=numpy.float32)
 LULC = numpy.array([[1, 2, 3, 4, -1]], dtype=numpy.float32)
@@ -111,12 +114,20 @@ sed_export_path = os.path.join(WORKSPACE, 'sed_export.tif')
 sdr._calculate_sed_export(
     usle_path, sdr_path, sed_export_path)
 
+dr_path = os.path.join(WORKSPACE, 'dr.tif')
+
+numpy.set_printoptions(formatter={'float': '{: 0.8f}'.format})
 for label, raster in (('sdr', sdr_path),
                       ('usle', usle_path),
                       ('e_prime', e_prime_path),
                       ('f', f_path),
+
+                      # I hacked a dr raster into the model so we could check
+                      # that our calculations were correct.  I'm leaving this
+                      # commented out in case we're using vanilla SDR.
+                      #('dr', dr_path),
                       ('sed_dep "r"', sed_deposition_path),
                       ('sed_export', sed_export_path),
                      ):
-    array = pygeoprocessing.raster_to_numpy_array(raster)
+    array = pygeoprocessing.raster_to_numpy_array(raster).astype(numpy.float32)
     print(f'{label:20} {array}')
